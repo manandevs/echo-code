@@ -1,5 +1,5 @@
 {
-  "name": "terminal-code-compiler",
+  "name": "code-compiler",
   "version": "0.1.0",
   "private": true,
   "scripts": {
