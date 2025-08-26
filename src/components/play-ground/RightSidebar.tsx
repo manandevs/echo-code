@@ -67,18 +67,18 @@ export default function RightSidebar({ onRun, output, executionTime, memoryUsage
       </div>
 
       {/* Output Panel */}
-      <div>
+      <div className='h-full'>
         <button onClick={() => setOutputOpen(!isOutputOpen)} className="flex items-center gap-1 text-[17px] font-bold w-full">
           <IoChevronForward size={14} className={`transition-transform ${isOutputOpen ? 'rotate-90' : ''}`} />
           <span>Output</span>
         </button>
         {isOutputOpen && (
-          <div className="bg-white rounded-lg border border-gray-200 animate-fade-in overflow-hidden">
+          <div className="bg-white rounded-lg border border-gray-200 animate-fade-in overflow-hidden h-full">
             <div className="flex items-center border-b border-gray-200">
               <button className="px-3 py-1 text-sm font-semibold border-b-2 border-blue-600 text-blue-600">Output</button>
               {/* <button className="px-3 py-1 text-sm font-medium text-gray-500 hover:bg-gray-50">Problems</button> */}
             </div>
-            <div className="p-3 pt-2 bg-gray-900 text-white font-mono text-xs leading-[1.1] h-48 overflow-y-auto whitespace-pre-wrap">
+            <div className="h-full p-3 pt-2 bg-gray-900 text-white font-mono text-xs leading-[1.1] h-48 overflow-y-auto whitespace-pre-wrap">
               {output}
             </div>
           </div>
