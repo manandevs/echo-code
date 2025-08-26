@@ -19,7 +19,7 @@ const siteConfig = {
   title: "EchoCode | Web-Based Code Compiler & Playground",
   description:
     "EchoCode is a fast, AI-assisted online code compiler and playground. Instantly write, run, and test code in JavaScript, Python, C++, and more — right from your browser.",
-  url: ""
+  url: "echo-code-isfi.vercel.app"
 };
 
 export const metadata: Metadata = {
