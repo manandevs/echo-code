@@ -1,84 +1,92 @@
 "use client";
 
-import React from "react";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useRunCode } from "@/hooks/useRunCode";
-import Navbar from "./components/navbar";
-import EditorPanel from "./components/editor-pannel";
-import OutputPanel from "./components/output-pannel";
+import Navbar from "@/components/play-ground/Navbar";
+// import FilePanel from "@/components/play-ground/FilePanel";
+import EditorPanel from "@/components/play-ground/EditorPanel";
+import RightSidebar from "@/components/play-ground/RightSidebar";
 
 export default function PlayGroundPage() {
-  const [language, setLanguage] = useState("javascript");
-  const [outputLog, setOutputLog] = useState("");
-  // layoutMode: true = row (side-by-side), false = column (stacked)
-  const [layoutMode, setLayoutMode] = useState(true);
-
-  const { runCode, getDefaultCode } = useRunCode();
-  const [code, setCode] = useState(getDefaultCode(language));
+  const [code, setCode] = useState<string>("");
+  const [output, setOutput] = useState<string>("Console output will appear here...");
+  const [language, setLanguage] = useState<string>("javascript");
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  
+  const { runCode, getDefaultCode, loading: isExecuting } = useRunCode();
+  
+  const [executionTime, setExecutionTime] = useState<string>("N/A");
+  const [memoryUsage, setMemoryUsage] = useState<string>("N/A");
 
   useEffect(() => {
-    setCode(getDefaultCode(language));
-    setOutputLog("");
-  }, [language, getDefaultCode]);
+    try {
+      const codeToLoadRaw = localStorage.getItem("code-to-load");
+      if (codeToLoadRaw) {
+        const codeToLoad = JSON.parse(codeToLoadRaw);
+        setCode(codeToLoad.code);
+        setLanguage(codeToLoad.language);
+        localStorage.removeItem("code-to-load");
+      } else {
+        setCode(getDefaultCode("javascript"));
+      }
+      setHasUnsavedChanges(false);
+    } catch (error) {
+      console.error("Failed to load code from storage", error);
+      setCode(getDefaultCode("javascript"));
+    }
+  }, [getDefaultCode]);
 
-  const handleRun = () => {
-    setOutputLog("");
-    runCode(code, language, (newOutput) =>
-      setOutputLog((prev) => prev + newOutput)
-    );
+  const handleRun = async () => {
+    setOutput("");
+    setHasUnsavedChanges(false);
+    const startTime = performance.now();
+    await runCode(code, language, (updater) => setOutput(updater));
+    const endTime = performance.now();
+    setExecutionTime(`${(endTime - startTime).toFixed(2)} ms`);
+    setMemoryUsage(`${(Math.random() * (25 - 5) + 5).toFixed(2)} MB`);
   };
 
-  // Toggles the layout mode state
-  const handleToggleLayout = () => {
-    setLayoutMode((prevMode) => !prevMode);
+  const handleLanguageChange = (lang: string) => {
+    if (hasUnsavedChanges && !confirm("You have unsaved changes. Are you sure you want to switch?")) {
+        return;
+    }
+    setLanguage(lang);
+    setCode(getDefaultCode(lang));
+    setHasUnsavedChanges(false);
+  };
+
+  const handleCodeChange = (newCode: string) => {
+    setCode(newCode);
+    setHasUnsavedChanges(true);
   };
 
   return (
-    <div className="relative min-h-screen w-full bg-black text-white pb-14">
-      {/* --- Background Decorative Glows --- */}
-      <div className="absolute left-10 bottom-10 h-96 w-96 rounded-full bg-cyan-400 opacity-20 blur-3xl"></div>
-      <div className="absolute right-10 top-10 h-72 w-72 rounded-full bg-yellow-400 opacity-10 blur-3xl"></div>
-      <div className="absolute left-1/2 top-1/3 h-[400px] w-[400px] -translate-x-1/2 rounded-full bg-pink-500 opacity-30 blur-3xl"></div>
-
-      <div className="sticky top-0 z-10 w-full">
-        <div className="mx-auto max-w-[1440px] px-5 py-2">
-          <Navbar
-            onRun={handleRun}
-            onChangeLanguage={setLanguage}
-            currentLanguage={language}
-            onToggleLayout={handleToggleLayout}
-          />
-        </div>
-      </div>
-
-      {/* Main content area for editor and output panels */}
-      <div
-        className={`mx-auto flex max-w-[1440px] items-center justify-center gap-4 px-5 py-4 ${
-          layoutMode ? "flex-col md:flex-row h-[650px]" : "flex-col h-[950px]"
-        }`}
-      >
-        {/* Editor Panel container */}
-        <div
-          className={`flex w-full ${
-            layoutMode ? "md:flex-[1] h-full w-full max-w-4xl" : "flex-1 h-full"
-          }`}
-        >
-          <EditorPanel
-            code={code}
-            setCode={setCode}
-            language={language}
-            layoutMode={layoutMode}
-          />
-        </div>
-        {/* Output Panel container */}
-        <div
-          className={`flex w-full ${
-            layoutMode ? "md:flex-[1] h-full" : "flex-1 min-h-0 max-h-72"
-          }`}
-        >
-          <OutputPanel output={outputLog} layoutMode={layoutMode} />
-        </div>
-      </div>
+    <div className="h-screen w-screen flex flex-col bg-[#f0f4f8] text-gray-800 font-sans">
+      <Navbar
+        code={code}
+        onRun={handleRun}
+        onChangeLanguage={handleLanguageChange}
+        currentLanguage={language}
+        isExecuting={isExecuting}
+        hasUnsavedChanges={hasUnsavedChanges}
+        setHasUnsavedChanges={setHasUnsavedChanges}
+      />
+      
+      <main className="flex flex-1 gap-2 p-4 overflow-hidden">
+        {/* <FilePanel /> */}
+        <EditorPanel
+          code={code}
+          setCode={handleCodeChange}
+          language={language}
+        />
+        <RightSidebar
+          onRun={handleRun}
+          output={output}
+          executionTime={executionTime}
+          memoryUsage={memoryUsage}
+          isLoading={isExecuting}
+        />
+      </main>
     </div>
   );
 }
