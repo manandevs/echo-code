@@ -24,7 +24,7 @@ const ClipsNavbar = () => {
       {/* Right Side: Call to Action */}
       <div className="flex items-center">
         <Link
-          href="/"
+          href="/play-ground"
           className="flex items-center gap-2 px-4 py-2 font-semibold text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
         >
           <FaTerminal size={14} /> Go to Playground
